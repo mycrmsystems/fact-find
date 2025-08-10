@@ -1,495 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Wealth Manager — Client Fact Find</title>
-  <style>
-    html { scroll-behavior: smooth; }
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; min-height: 100vh; background-color: #f9fafb; }
-    /* Top bar */
-    .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background:#fff; border-bottom:1px solid #d1d5db; }
-    .title { font-size: 18px; font-weight: 700; color:#1a365d; }
-    .actions { display:flex; gap:8px; }
-    button { padding: 8px 12px; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; }
-    button:hover { background:#1a365d; }
-
-    /* Layout */
-    .sidebar { width: 265px; background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color:#fff; padding: 18px; box-sizing: border-box; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y:auto; }
-    .sidebar h2 { font-size:16px; margin:0 0 8px 0; }
-    .sidebar a { color:#fff; text-decoration:none; display:block; padding:8px 6px; border-radius:6px; }
-    .sidebar a:hover { background: rgba(255,255,255,0.12); }
-
-    .main { flex:1; background:#fff; }
-    .content { padding: 22px; }
-
-    section { margin-bottom: 32px; background:#f3f4f6; padding:18px; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.05); scroll-margin-top: 80px; }
-    h2 { margin:0 0 12px 0; color:#1a365d; font-size:18px; }
-    .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px 16px; }
-    .full { grid-column: 1 / -1; }
-
-    label { font-weight:600; color:#111827; display:block; margin-bottom:6px; }
-    input, select, textarea { width:100%; padding:8px; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#111827; box-sizing:border-box; }
-    textarea { min-height: 90px; }
-
-    table { width:100%; border-collapse: collapse; background:#fff; }
-    th, td { border:1px solid #d1d5db; padding:8px; font-size: 14px; }
-    th { background:#eff6ff; text-align:left; }
-    .table-actions { margin-top:10px; display:flex; gap:8px; }
-    .small { font-size:12px; color:#6b7280; }
-
-    .checkbox-row { display:flex; gap:14px; flex-wrap:wrap; }
-    .checkbox-row label { font-weight:500; }
-
-    .muted { color:#6b7280; font-size:13px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Wealth Manager – Client Fact Find</title>
+<style>
+  :root{
+    --blue-dark:#1a365d;
+    --blue:#2563eb;
+    --bg:#f9fafb;
+    --card:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --border:#d1d5db;
+    --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  header{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:12px 16px;color:#fff;
+    background:linear-gradient(135deg,#1a365d 0%,#2563eb 100%);
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  header .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header button, header .pill{
+    background:var(--card);color:var(--blue-dark);border:0;border-radius:6px;padding:8px 12px;cursor:pointer;font-weight:600
+  }
+  header .pill input{vertical-align:middle;margin-right:6px}
+  main{max-width:1100px;margin:18px auto;padding:0 12px}
+  nav{
+    display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px 0;padding:8px;background:#0f1f38;border-radius:8px;position:sticky;top:62px;z-index:9
+  }
+  nav button{
+    background:var(--blue);border:0;color:#fff;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600
+  }
+  nav button.active{background:#173058}
+  section.card{
+    display:none;background:var(--card);border-radius:10px;border:1px solid var(--border);
+    padding:18px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)
+  }
+  h2{margin:0 0 12px 0;color:var(--blue-dark)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  label{font-weight:600;margin-top:12px;display:block}
+  input,select,textarea{
+    width:100%;padding:8px 10px;margin-top:6px;border:1px solid var(--border);border-radius:6px;background:#fff
+  }
+  textarea{min-height:90px;resize:vertical}
+  .muted{color:var(--muted);font-size:.9rem}
+  .table{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:10px}
+  .table .row{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;padding:10px;border-top:1px solid var(--border)}
+  .table .row.head{background:#f3f4f6;font-weight:700;border-top:0}
+  .row .col{grid-column:span 3}
+  .row .col-2{grid-column:span 2}
+  .row .col-4{grid-column:span 4}
+  .row .col-6{grid-column:span 6}
+  .row .col-12{grid-column:span 12}
+  .controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .btn{background:var(--blue);color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer;font-weight:600}
+  .btn.secondary{background:#173058}
+  .btn.add{background:var(--ok)}
+  .btn.remove{background:var(--err)}
+  .yesno{display:flex;gap:8px;margin-top:6px}
+  .yesno button{border:1px solid var(--border);background:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
+  .yesno button.active-yes{background:#ecfdf5;border-color:#34d399}
+  .yesno button.active-no{background:#fef2f2;border-color:#f87171}
+  .calc{background:#f3f4f6;border:1px dashed var(--border);border-radius:8px;padding:10px;margin-top:8px}
+  .right-align{text-align:right}
+  .hidden{display:none !important}
+</style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h2>Fact Find Menu</h2>
-    <a href="#personal">Personal Details</a>
-    <a href="#partner">Partner Details</a>
-    <a href="#dependents">Dependents</a>
-    <a href="#objectives">Objectives & Priorities</a>
-    <a href="#income">Income & Expenditure</a>
-    <a href="#assets">Assets & Liabilities</a>
-    <a href="#protection">Protection</a>
-    <a href="#pensions">Pensions</a>
-    <a href="#investments">Investments</a>
-    <a href="#estate">Estate Planning</a>
-    <a href="#risk">Attitude to Risk</a>
-    <a href="#vulnerability">Vulnerability</a>
-    <a href="#notes">Adviser Notes</a>
+<header>
+  <div><strong>The Wealth Manager – Client Fact Find</strong></div>
+  <div class="right">
+    <label class="pill"><input id="toggleClient2" type="checkbox">Add Second Client</label>
+    <button onclick="window.print()">Print</button>
   </div>
+</header>
 
-  <!-- Main -->
-  <div class="main">
-    <div class="topbar">
-      <div class="title">The Wealth Manager — Client Fact Find</div>
-      <div class="actions">
-        <button type="button" onclick="saveToFile()">Save</button>
-        <button type="button" onclick="loadFromFile()">Load</button>
-        <button type="button" onclick="window.print()">Print</button>
+<main>
+  <!-- Nav built from sections automatically -->
+  <nav id="sectionNav"></nav>
+
+  <!-- 1. Personal Details -->
+  <section class="card" id="personal">
+    <h2>Personal Details</h2>
+    <div class="grid-2">
+      <div>
+        <label>Client 1 – Full Name<input id="c1_full_name" type="text" oninput="updateClientNames()"></label>
+        <label>Date of Birth<input id="c1_dob" type="date"></label>
+        <label>Nationality<input id="c1_nat" type="text"></label>
+        <label>Email<input id="c1_email" type="email"></label>
+        <label>Phone<input id="c1_phone" type="tel"></label>
+        <label>Address<textarea id="c1_addr"></textarea></label>
+      </div>
+      <div class="client2 hidden">
+        <label>Client 2 – Full Name<input id="c2_full_name" type="text" oninput="updateClientNames()"></label>
+        <label>Date of Birth<input id="c2_dob" type="date"></label>
+        <label>Nationality<input id="c2_nat" type="text"></label>
+        <label>Email<input id="c2_email" type="email"></label>
+        <label>Phone<input id="c2_phone" type="tel"></label>
+        <label>Address<textarea id="c2_addr"></textarea></label>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <label>Do you have a partner?
+          <select id="has_partner" onchange="document.getElementById('partner').classList.toggle('hidden', this.value!=='Yes')">
+            <option>No</option><option>Yes</option>
+          </select>
+        </label>
+        <p class="muted">If “Yes”, a dedicated Partner Details section becomes available.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1b. Partner Details -->
+  <section class="card hidden" id="partner">
+    <h2>Partner Details</h2>
+    <div class="grid-2">
+      <div>
+        <label>Partner – Full Name<input id="p_full_name" type="text"></label>
+        <label>Date of Birth<input id="p_dob" type="date"></label>
+        <label>Nationality<input id="p_nat" type="text"></label>
+        <label>Email<input id="p_email" type="email"></label>
+        <label>Phone<input id="p_phone" type="tel"></label>
+      </div>
+      <div>
+        <label>Notes<textarea id="p_notes"></textarea></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Dependents -->
+  <section class="card" id="dependents">
+    <h2>Dependents</h2>
+    <div class="controls">
+      <button class="btn add" onclick="addDependentRow()">+ Add Dependent</button>
+    </div>
+    <div class="table" id="dependents_table">
+      <div class="row head">
+        <div class="col-4">Name</div><div class="col-2">Relationship</div>
+        <div class="col-2">Age</div><div class="col-2">Financially Dependent?</div>
+        <div class="col-2">Remove</div>
+      </div>
+      <!-- rows injected -->
+    </div>
+  </section>
+
+  <!-- 3. Objectives -->
+  <section class="card" id="objectives">
+    <h2>Objectives</h2>
+    <div class="grid-2">
+      <label class="col-6">Primary Objectives<textarea id="obj_primary"></textarea></label>
+      <label class="col-6">Secondary Objectives<textarea id="obj_secondary"></textarea></label>
+    </div>
+    <label>Time Horizon<select id="obj_horizon">
+      <option>Short (0–3 years)</option><option>Medium (3–7 years)</option><option>Long (7+ years)</option>
+    </select></label>
+  </section>
+
+  <!-- 4. Income & Expenditure -->
+  <section class="card" id="income">
+    <h2>Income & Expenditure</h2>
+
+    <div class="grid-2">
+      <div>
+        <h3>Client 1 Income</h3>
+        <label>Gross Annual (€)<input id="c1_gross_annual" type="number" step="0.01" oninput="recalcIncome()"></label>
+        <label>Net Annual (€)<input id="c1_net_annual" type="number" step="0.01" oninput="syncAnnualMonthly('c1')"></label>
+        <label>Net Monthly (€)<input id="c1_net_monthly" type="number" step="0.01" oninput="syncMonthlyAnnual('c1')"></label>
+      </div>
+      <div class="client2 hidden">
+        <h3>Client 2 Income</h3>
+        <label>Gross Annual (€)<input id="c2_gross_annual" type="number" step="0.01" oninput="recalcIncome()"></label>
+        <label>Net Annual (€)<input id="c2_net_annual" type="number" step="0.01" oninput="syncAnnualMonthly('c2')"></label>
+        <label>Net Monthly (€)<input id="c2_net_monthly" type="number" step="0.01" oninput="syncMonthlyAnnual('c2')"></label>
       </div>
     </div>
 
-    <div class="content">
-      <!-- Personal Details -->
-      <section id="personal">
-        <h2>Personal Details</h2>
-        <div class="grid">
-          <div>
-            <label for="full_name">Full Name</label>
-            <input id="full_name" name="full_name" type="text" />
-          </div>
-          <div>
-            <label for="dob">Date of Birth</label>
-            <input id="dob" name="dob" type="date" />
-          </div>
-          <div>
-            <label for="marital_status">Marital Status</label>
-            <input id="marital_status" name="marital_status" type="text" />
-          </div>
-          <div>
-            <label for="nationality">Nationality</label>
-            <input id="nationality" name="nationality" type="text" />
-          </div>
-          <div>
-            <label for="ni_number">NI Number</label>
-            <input id="ni_number" name="ni_number" type="text" />
-          </div>
-          <div>
-            <label for="residency">Residency Status</label>
-            <input id="residency" name="residency" type="text" />
-          </div>
-          <div class="full">
-            <label for="address1">Address</label>
-            <input id="address1" name="address1" type="text" placeholder="Line 1" />
-            <input name="address2" type="text" placeholder="Line 2" style="margin-top:8px;" />
-          </div>
-          <div>
-            <label for="city">City</label>
-            <input id="city" name="city" type="text" />
-          </div>
-          <div>
-            <label for="postcode">Postcode</label>
-            <input id="postcode" name="postcode" type="text" />
-          </div>
-          <div>
-            <label for="country">Country</label>
-            <input id="country" name="country" type="text" />
-          </div>
-          <div>
-            <label for="mobile">Mobile</label>
-            <input id="mobile" name="mobile" type="tel" />
-          </div>
-          <div>
-            <label for="email">Email</label>
-            <input id="email" name="email" type="email" />
-          </div>
-          <div>
-            <label for="employment_status">Employment Status</label>
-            <input id="employment_status" name="employment_status" type="text" />
-          </div>
-          <div>
-            <label for="occupation">Occupation</label>
-            <input id="occupation" name="occupation" type="text" />
-          </div>
-          <div class="full">
-            <label for="employer">Employer / Business</label>
-            <input id="employer" name="employer" type="text" />
-          </div>
-        </div>
-      </section>
-
-      <!-- Partner Details -->
-      <section id="partner">
-        <h2>Partner Details</h2>
-        <div class="grid">
-          <div>
-            <label for="has_partner">Do you have a partner?</label>
-            <select id="has_partner" name="has_partner" onchange="togglePartner()">
-              <option value="no">No</option>
-              <option value="yes">Yes</option>
-            </select>
-          </div>
-        </div>
-        <div id="partner_fields" style="display:none; margin-top:12px;">
-          <div class="grid">
-            <div><label for="p_full_name">Partner Full Name</label><input id="p_full_name" name="p_full_name" type="text" /></div>
-            <div><label for="p_dob">Partner DOB</label><input id="p_dob" name="p_dob" type="date" /></div>
-            <div><label for="p_nationality">Nationality</label><input id="p_nationality" name="p_nationality" type="text" /></div>
-            <div><label for="p_email">Email</label><input id="p_email" name="p_email" type="email" /></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Dependents -->
-      <section id="dependents">
-        <h2>Dependents</h2>
-        <div class="grid">
-          <div>
-            <label for="dependents_count">Number of Dependents</label>
-            <input id="dependents_count" name="dependents_count" type="number" min="0" />
-          </div>
-        </div>
-        <div class="small" style="margin:8px 0;">Add each dependent below:</div>
-        <table id="dep_table">
-          <thead><tr><th>Name</th><th>Relationship</th><th>DOB</th><th>Financially Dependent?</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="dep_name_1" type="text"></td>
-              <td><input name="dep_rel_1" type="text"></td>
-              <td><input name="dep_dob_1" type="date"></td>
-              <td><select name="dep_fin_1"><option>No</option><option>Yes</option></select></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('dep_table')">Add Dependent</button></div>
-      </section>
-
-      <!-- Objectives -->
-      <section id="objectives">
-        <h2>Objectives & Priorities</h2>
-        <div class="grid">
-          <div class="full"><label for="obj_short">Short-term goals (0–3 yrs)</label><textarea id="obj_short" name="obj_short"></textarea></div>
-          <div class="full"><label for="obj_med">Medium-term goals (3–7 yrs)</label><textarea id="obj_med" name="obj_med"></textarea></div>
-          <div class="full"><label for="obj_long">Long-term goals (7yrs+)</label><textarea id="obj_long" name="obj_long"></textarea></div>
-          <div class="full"><label for="obj_priorities">Priorities (what matters most and why)</label><textarea id="obj_priorities" name="obj_priorities"></textarea></div>
-        </div>
-      </section>
-
-      <!-- Income & Expenditure -->
-      <section id="income">
-        <h2>Income & Expenditure</h2>
-        <div class="grid">
-          <div><label for="inc_salary">Salary (net monthly)</label><input id="inc_salary" name="inc_salary" type="number" step="0.01" /></div>
-          <div><label for="inc_bonus">Bonus/Commission (avg monthly)</label><input id="inc_bonus" name="inc_bonus" type="number" step="0.01" /></div>
-          <div><label for="inc_self">Self-employed income (avg monthly)</label><input id="inc_self" name="inc_self" type="number" step="0.01" /></div>
-          <div><label for="inc_rental">Rental income (monthly)</label><input id="inc_rental" name="inc_rental" type="number" step="0.01" /></div>
-          <div><label for="inc_pension">Pension income (monthly)</label><input id="inc_pension" name="inc_pension" type="number" step="0.01" /></div>
-          <div><label for="inc_benefits">Benefits/Other (monthly)</label><input id="inc_benefits" name="inc_benefits" type="number" step="0.01" /></div>
-          <div class="full"><label for="inc_notes">Income notes</label><textarea id="inc_notes" name="inc_notes"></textarea></div>
-        </div>
-        <div class="grid" style="margin-top:10px;">
-          <div><label for="exp_housing">Mortgage/Rent</label><input id="exp_housing" name="exp_housing" type="number" step="0.01"></div>
-          <div><label for="exp_util">Utilities/Council Tax</label><input id="exp_util" name="exp_util" type="number" step="0.01"></div>
-          <div><label for="exp_ins">Insurances</label><input id="exp_ins" name="exp_ins" type="number" step="0.01"></div>
-          <div><label for="exp_transport">Transport</label><input id="exp_transport" name="exp_transport" type="number" step="0.01"></div>
-          <div><label for="exp_food">Food/Household</label><input id="exp_food" name="exp_food" type="number" step="0.01"></div>
-          <div><label for="exp_children">Childcare/School</label><input id="exp_children" name="exp_children" type="number" step="0.01"></div>
-          <div><label for="exp_loans">Loans/Credit Cards</label><input id="exp_loans" name="exp_loans" type="number" step="0.01"></div>
-          <div><label for="exp_other">Other</label><input id="exp_other" name="exp_other" type="number" step="0.01"></div>
-          <div class="full"><label for="exp_notes">Expenditure notes</label><textarea id="exp_notes" name="exp_notes"></textarea></div>
-        </div>
-      </section>
-
-      <!-- Assets & Liabilities -->
-      <section id="assets">
-        <h2>Assets & Liabilities</h2>
-        <div class="muted">Properties</div>
-        <table id="prop_table">
-          <thead><tr><th>Address</th><th>Ownership %</th><th>Value (£)</th><th>Mortgage Outstanding (£)</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="prop_addr_1" type="text"></td>
-              <td><input name="prop_share_1" type="number" step="0.01"></td>
-              <td><input name="prop_value_1" type="number" step="0.01"></td>
-              <td><input name="prop_mort_1" type="number" step="0.01"></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('prop_table')">Add Property</button></div>
-
-        <div class="muted" style="margin-top:14px;">Mortgages/Loans</div>
-        <table id="debt_table">
-          <thead><tr><th>Lender</th><th>Balance (£)</th><th>Rate %</th><th>Fixed To</th><th>Monthly (£)</th><th>Term (yrs)</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="debt_lender_1" type="text"></td>
-              <td><input name="debt_balance_1" type="number" step="0.01"></td>
-              <td><input name="debt_rate_1" type="number" step="0.01"></td>
-              <td><input name="debt_fixed_1" type="date"></td>
-              <td><input name="debt_monthly_1" type="number" step="0.01"></td>
-              <td><input name="debt_term_1" type="number" step="1"></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('debt_table')">Add Loan</button></div>
-
-        <div class="grid" style="margin-top:14px;">
-          <div class="full"><label for="cash_savings">Cash savings / Premium Bonds / NS&I</label><textarea id="cash_savings" name="cash_savings"></textarea></div>
-          <div class="full"><label for="other_assets">Other assets (business interests, valuables, crypto)</label><textarea id="other_assets" name="other_assets"></textarea></div>
-        </div>
-      </section>
-
-      <!-- Protection -->
-      <section id="protection">
-        <h2>Protection</h2>
-        <div class="checkbox-row">
-          <label><input type="checkbox" name="prot_life"> Life Insurance</label>
-          <label><input type="checkbox" name="prot_ci"> Critical Illness</label>
-          <label><input type="checkbox" name="prot_ip"> Income Protection</label>
-          <label><input type="checkbox" name="prot_pmi"> Private Medical</label>
-          <label><input type="checkbox" name="prot_dis"> Death in Service</label>
-        </div>
-        <div class="muted" style="margin-top:8px;">Policies</div>
-        <table id="prot_table">
-          <thead><tr><th>Type</th><th>Provider</th><th>Sum Assured (£)</th><th>Premium (£)</th><th>Start</th><th>Term (yrs)</th><th>Policy No.</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="prot_type_1" type="text"></td>
-              <td><input name="prot_provider_1" type="text"></td>
-              <td><input name="prot_sum_1" type="number" step="0.01"></td>
-              <td><input name="prot_prem_1" type="number" step="0.01"></td>
-              <td><input name="prot_start_1" type="date"></td>
-              <td><input name="prot_term_1" type="number"></td>
-              <td><input name="prot_no_1" type="text"></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('prot_table')">Add Policy</button></div>
-      </section>
-
-      <!-- Pensions -->
-      <section id="pensions">
-        <h2>Pensions</h2>
-        <table id="pens_table">
-          <thead><tr><th>Provider</th><th>Type (DC/DB/SIPP)</th><th>Policy No.</th><th>Current Value (£)</th><th>Retirement Age</th><th>Contributions (£/m)</th><th>Safeguarded Benefits?</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="pens_provider_1" type="text"></td>
-              <td><input name="pens_type_1" type="text"></td>
-              <td><input name="pens_pol_1" type="text"></td>
-              <td><input name="pens_value_1" type="number" step="0.01"></td>
-              <td><input name="pens_age_1" type="number"></td>
-              <td><input name="pens_cont_1" type="number" step="0.01"></td>
-              <td><select name="pens_safe_1"><option>No</option><option>Yes</option></select></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('pens_table')">Add Pension</button></div>
-      </section>
-
-      <!-- Investments -->
-      <section id="investments">
-        <h2>Investments</h2>
-        <table id="inv_table">
-          <thead><tr><th>Wrapper (ISA/GIA/Bond)</th><th>Platform/Provider</th><th>Strategy / Funds</th><th>Risk Profile</th><th>Account/Policy No.</th><th>Current Value (£)</th><th>Remove</th></tr></thead>
-          <tbody>
-            <tr>
-              <td><input name="inv_wrap_1" type="text"></td>
-              <td><input name="inv_platform_1" type="text"></td>
-              <td><input name="inv_strategy_1" type="text"></td>
-              <td><input name="inv_risk_1" type="text"></td>
-              <td><input name="inv_no_1" type="text"></td>
-              <td><input name="inv_value_1" type="number" step="0.01"></td>
-              <td><button type="button" onclick="removeRow(this)">✖</button></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="table-actions"><button type="button" onclick="addRow('inv_table')">Add Investment</button></div>
-      </section>
-
-      <!-- Estate Planning -->
-      <section id="estate">
-        <h2>Estate Planning</h2>
-        <div class="grid">
-          <div><label for="will_in_place">Will in place?</label><select id="will_in_place" name="will_in_place"><option>No</option><option>Yes</option></select></div>
-          <div><label for="will_date">Will date</label><input id="will_date" name="will_date" type="date"/></div>
-          <div class="full"><label for="will_exec">Executors (names & contact)</label><textarea id="will_exec" name="will_exec"></textarea></div>
-          <div><label for="lpa_pf">LPA Property & Finance?</label><select id="lpa_pf" name="lpa_pf"><option>No</option><option>Yes</option></select></div>
-          <div><label for="lpa_hw">LPA Health & Welfare?</label><select id="lpa_hw" name="lpa_hw"><option>No</option><option>Yes</option></select></div>
-          <div class="full"><label for="attorneys">Attorney(s) details</label><textarea id="attorneys" name="attorneys"></textarea></div>
-          <div class="full"><label for="trusts">Trusts in place / planned (type, trustees, assets)</label><textarea id="trusts" name="trusts"></textarea></div>
-          <div class="full"><label for="iht">IHT considerations / gifts</label><textarea id="iht" name="iht"></textarea></div>
-        </div>
-      </section>
-
-      <!-- Attitude to Risk -->
-      <section id="risk">
-        <h2>Attitude to Risk</h2>
-        <div class="grid">
-          <div class="full"><label>Investment approach</label>
-            <select name="risk_approach">
-              <option>Very Low — avoid risk, prefer cash</option>
-              <option>Low — very stable preferred</option>
-              <option>Moderate — accept some risk</option>
-              <option>High — comfortable with risk</option>
-              <option>Very High — seek higher risk/return</option>
-            </select>
-          </div>
-          <div><label>Planned investment horizon</label>
-            <select name="risk_horizon">
-              <option>< 3 years</option>
-              <option>3–5 years</option>
-              <option>5–10 years</option>
-              <option>10+ years</option>
-            </select>
-          </div>
-          <div><label>Previous investment experience?</label>
-            <select name="risk_experience"><option>No</option><option>Yes</option></select>
-          </div>
-          <div class="full"><label for="capacity_loss">Capacity for loss (ability to withstand loss)</label><textarea id="capacity_loss" name="capacity_loss"></textarea></div>
-        </div>
-        <div class="small" style="margin:8px 0;">Risk questionnaire (1 = strongly disagree, 5 = strongly agree)</div>
-        <table id="riskq_table">
-          <thead><tr><th>Question</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
-          <tbody>
-            <tr><td>I am comfortable with short-term market falls.</td><td><input type="radio" name="rq1" value="1"></td><td><input type="radio" name="rq1" value="2"></td><td><input type="radio" name="rq1" value="3"></td><td><input type="radio" name="rq1" value="4"></td><td><input type="radio" name="rq1" value="5"></td></tr>
-            <tr><td>I prefer growth potential over capital security.</td><td><input type="radio" name="rq2" value="1"></td><td><input type="radio" name="rq2" value="2"></td><td><input type="radio" name="rq2" value="3"></td><td><input type="radio" name="rq2" value="4"></td><td><input type="radio" name="rq2" value="5"></td></tr>
-            <tr><td>I would invest more after markets fall.</td><td><input type="radio" name="rq3" value="1"></td><td><input type="radio" name="rq3" value="2"></td><td><input type="radio" name="rq3" value="3"></td><td><input type="radio" name="rq3" value="4"></td><td><input type="radio" name="rq3" value="5"></td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <!-- Vulnerability -->
-      <section id="vulnerability">
-        <h2>Vulnerability</h2>
-        <div class="small">Tick any that apply and provide details where relevant.</div>
-        <div class="checkbox-row" style="margin:8px 0;">
-          <label><input type="checkbox" name="vul_health"> Health (physical/mental)</label>
-          <label><input type="checkbox" name="vul_life"> Life events (bereavement, caring, separation)</label>
-          <label><input type="checkbox" name="vul_resilience"> Financial resilience (debt/low savings)</label>
-          <label><input type="checkbox" name="vul_capability"> Capability (confidence, literacy, digital)</label>
-        </div>
-        <div class="grid">
-          <div class="full"><label for="vul_details">Details (what support may be helpful?)</label><textarea id="vul_details" name="vul_details"></textarea></div>
-          <div><label for="vul_support">Need support in meetings?</label><select id="vul_support" name="vul_support"><option>No</option><option>Yes</option></select></div>
-          <div><label for="pref_comm">Preferred communication</label><input id="pref_comm" name="pref_comm" type="text" placeholder="e.g., email, phone, large print"/></div>
-        </div>
-      </section>
-
-      <!-- Adviser Notes -->
-      <section id="notes">
-        <h2>Adviser Notes</h2>
-        <div class="grid">
-          <div class="full"><label for="notes_general">General notes</label><textarea id="notes_general" name="notes_general"></textarea></div>
-          <div class="full"><label for="notes_actions">Follow-up actions</label><textarea id="notes_actions" name="notes_actions"></textarea></div>
-        </div>
-      </section>
+    <h3 style="margin-top:16px">Monthly Outgoings</h3>
+    <div class="controls">
+      <button class="btn add" onclick="addOutgoingRow()">+ Add Outgoing</button>
     </div>
-  </div>
+    <div class="table" id="outgoings_table">
+      <div class="row head">
+        <div class="col-4">Category</div><div class="col-4">Notes</div>
+        <div class="col-2">Monthly (€)</div><div class="col-2">Remove</div>
+      </div>
+      <!-- rows injected -->
+    </div>
 
-  <script>
-    // Partner toggle
-    function togglePartner(){
-      const has = document.getElementById('has_partner').value;
-      document.getElementById('partner_fields').style.display = (has === 'yes') ? 'block' : 'none';
-    }
+    <div class="calc">
+      <div class="grid-3">
+        <div>
+          <label>Total Net Monthly Income (€) <input id="total_net_monthly" type="number" readonly></label>
+        </div>
+        <div>
+          <label>Total Monthly Outgoings (€) <input id="total_outgoings" type="number" readonly></label>
+        </div>
+        <div>
+          <label>Net Disposable Income (Monthly) (€) <input id="disposable_monthly" type="number" readonly></label>
+        </div>
+      </div>
+      <p class="muted">Disposable = (Client 1 Net Monthly + Client 2 Net Monthly) − Total Outgoings.</p>
+    </div>
+  </section>
 
-    // Table row helpers
-    function addRow(tableId){
-      const t = document.getElementById(tableId).querySelector('tbody');
-      const first = t.querySelector('tr');
-      const clone = first.cloneNode(true);
-      // Clear values and increment names
-      clone.querySelectorAll('input, select, textarea').forEach((el)=>{
-        if(el.type === 'checkbox' || el.type === 'radio'){ el.checked = false; }
-        else { el.value = ''; }
-        if(el.name){
-          const m = el.name.match(/_(\d+)$/);
-          if(m){ el.name = el.name.replace(/_(\d+)$/, '_' + (parseInt(m[1],10)+1)); }
-        }
-      });
-      t.appendChild(clone);
-    }
-    function removeRow(btn){
-      const tr = btn.closest('tr');
-      const tbody = tr.parentElement;
-      if(tbody.rows.length > 1){ tbody.removeChild(tr); }
-    }
+  <!-- 5. Assets & Liabilities -->
+  <section class="card" id="assets">
+    <h2>Assets & Liabilities</h2>
 
-    // Save / Load JSON (supports text, number, date, select, checkbox, radio)
-    function collectForm(){
-      const data = {};
-      const fields = document.querySelectorAll('input, select, textarea');
-      fields.forEach(el => {
-        if(!el.name && !el.id) return;
-        const key = el.name || el.id;
-        if(el.type === 'checkbox') data[key] = !!el.checked;
-        else if(el.type === 'radio') { if(el.checked) data[key] = el.value; }
-        else data[key] = el.value;
-      });
-      return data;
-    }
-    function populateForm(data){
-      const fields = document.querySelectorAll('input, select, textarea');
-      fields.forEach(el => {
-        const key = el.name || el.id;
-        if(!(key in data)) return;
-        if(el.type === 'checkbox') el.checked = !!data[key];
-        else if(el.type === 'radio') el.checked = (el.value === data[key]);
-        else el.value = data[key];
-      });
-      // ensure partner section reflects select value
-      if(document.getElementById('has_partner')) togglePartner();
-    }
-    function saveToFile(){
-      const blob = new Blob([JSON.stringify(collectForm(), null, 2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
-      a.download = `factfind_${ts}.json`;
-      document.body.appendChild(a); a.click(); a.remove();
-    }
-    function loadFromFile(){
-      const input = document.createElement('input');
-      input.type = 'file'; input.accept = '.json,application/json';
-      input.onchange = e => {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = () => { try { populateForm(JSON.parse(reader.result)); } catch(e){ alert('Invalid JSON file.'); } };
-        reader.readAsText(file);
-      };
-      input.click();
-    }
-  </script>
+    <h3>Properties</h3>
+    <div class="controls"><button class="btn add" onclick="addPropertyRow()">+ Add Property</button></div>
+    <div class="table" id="properties_table">
+      <div class="row head">
+        <div class="col-4">Address</div><div class="col-2">Ownership</div>
+        <div class="col-2">Value (€)</div><div class="col-2">Mortgage (€)</div><div class="col-2">Remove</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:16px">Debts / Loans</h3>
+    <div class="controls"><button class="btn add" onclick="addDebtRow()">+ Add Debt/Loan</button></div>
+    <div class="table" id="debts_table">
+      <div class="row head">
+        <div class="col-4">Lender / Type</div><div class="col-2">Balance (€)</div>
+        <div class="col-2">Monthly (€)</div><div class="col-2">Rate (%)</div><div class="col-2">Remove</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Protection -->
+  <section class="card" id="protection">
+    <h2>Protection</h2>
+    <div class="controls"><button class="btn add" onclick="addPolicyRow()">+ Add Policy</button></div>
+    <div class="table" id="policies_table">
+      <div class="row head">
+        <div class="col-2">Type</div><div class="col-2">Owner</div><div class="col-3">Provider</div>
+        <div class="col-2">Sum Assured (€)</div><div class="col-2">Premium / m (€)</div><div class="col-1">Remove</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Pensions -->
+  <section class="card" id="pensions">
+    <h2>Pensions</h2>
+    <div class="controls"><button class="btn add" onclick="addPensionRow()">+ Add Pension</button></div>
+    <div class="table" id="pensions_table">
+      <div class="row head">
+        <div class="col-3">Provider</div><div class="col-2">Type</div><div class="col-2">Owner</div>
+        <div class="col-2">Current Value (€)</div><div class="col-2">Contrib / m (€)</div><div class="col-1">Remove</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Investments -->
+  <section class="card" id="investments">
+    <h2>Investments</h2>
+    <div class="controls"><button class="btn add" onclick="addInvestmentRow()">+ Add Investment</button></div>
+    <div class="table" id="investments_table">
+      <div class="row head">
+        <div class="col-3">Account Type</div><div class="col-3">Provider</div>
+        <div class="col-2">Owner</div><div class="col-2">Current Value (€)</div><div class="col-2">Remove</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Estate Planning -->
+  <section class="card" id="estate">
+    <h2>Estate Planning</h2>
+    <label>Valid Will in place?
+      <select id="has_will"><option>No</option><option>Yes</option></select>
+    </label>
+    <label>Lasting Powers of Attorney (Property & Finance / Health & Welfare)
+      <textarea id="lpa_details" placeholder="Details"></textarea>
+    </label>
+    <label>Existing or Proposed Trusts
+      <textarea id="trust_details" placeholder="Details"></textarea>
+    </label>
+  </section>
+
+  <!-- 10. Attitude to Risk -->
+  <section class="card" id="risk">
+    <h2>Attitude to Risk</h2>
+    <label>Investment Approach
+      <select id="risk_approach">
+        <option>Very Low – prefer cash, avoid risk</option>
+        <option>Low – very stable, limited return</option>
+        <option>Moderate – accept some risk for return</option>
+        <option>High – comfortable with risk for growth</option>
+        <option>Very High – seek higher risk / return</option>
+      </select>
+    </label>
+    <div class="grid-2">
+      <label>Time Horizon
+        <select id="risk_horizon">
+          <option>< 3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
+        </select>
+      </label>
+      <label>Previous Investment Experience
+        <select id="risk_exp"><option>None</option><option>Limited</option><option>Good</option><option>Extensive</option></select>
+      </label>
+    </div>
+    <label>Notes<textarea id="risk_notes"></textarea></label>
+  </section>
+
+  <!-- 11. Vulnerability -->
+  <section class="card" id="vulnerability">
+    <h2>Vulnerability Assessment</h2>
+    <p class="muted">This section aims to identify any areas of financial risk or instability, allowing us to develop strategies for safeguarding your financial future against unforeseen challenges.</p>
+
+    <div class="grid-2">
+      <div>
+        <h3>Client 1 (<span class="c1-name">Client 1</span>)</h3>
+        <div class="qblock">
+          <label>Do you have any health or cognitive issues that could affect your ability to make financial decisions, <span class="c1-name">Client 1</span>?</label>
+          <div class="yesno" data-target="vul_c1_q1"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <div class="qblock">
+          <label>Have you experienced any recent life changes that could have affected your financial situation, <span class="c1-name">Client 1</span>?</label>
+          <div class="yesno" data-target="vul_c1_q2"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <div class="qblock">
+          <label>Have you ever been financially exploited or taken advantage of, <span class="c1-name">Client 1</span>?</label>
+          <div class="yesno" data-target="vul_c1_q3"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <label>Notes<textarea id="vul_c1_notes"></textarea></label>
+      </div>
+
+      <div class="client2 hidden">
+        <h3>Client 2 (<span class="c2-name">Client 2</span>)</h3>
+        <div class="qblock">
+          <label>Do you have any health or cognitive issues that could affect your ability to make financial decisions, <span class="c2-name">Client 2</span>?</label>
+          <div class="yesno" data-target="vul_c2_q1"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <div class="qblock">
+          <label>Have you experienced any recent life changes that could have affected your financial situation, <span class="c2-name">Client 2</span>?</label>
+          <div class="yesno" data-target="vul_c2_q2"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <div class="qblock">
+          <label>Have you ever been financially exploited or taken advantage of, <span class="c2-name">Client 2</span>?</label>
+          <div class="yesno" data-target="vul_c2_q3"><button onclick="yn(this,true)">Yes</button><button onclick="yn(this,false)">No</button></div>
+        </div>
+        <label>Notes<textarea id="vul_c2_notes"></textarea></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. Adviser Notes -->
+  <section class="card" id="notes">
+    <h2>Adviser Notes</h2>
+    <label>General Notes<textarea id="adv_notes" placeholder="Observations, suitability considerations, follow-ups..."></textarea></label>
+  </section>
+</main>
+
+<script>
+  /* ---------- Navigation (one section visible) ---------- */
+  const sections=[...document.querySelectorAll('section.card')];
+  const nav=document.getElementById('sectionNav');
+  sections.forEach(sec=>{
+    const b=document.createElement('button');
+    b.textContent=sec.querySelector('h2').textContent;
+    b.onclick=()=>showSection(sec.id);
+    nav.appendChild(b);
+  });
+  function showSection(id){
+    sections.forEach(s=>s.style.display='none');
+    document.querySelectorAll('nav button').forEach(btn=>btn.classList.remove('active'));
+    const tgt=document.getElementById(id); if(tgt) tgt.style.display='block';
+    const idx=sections.findIndex(s=>s.id===id);
+    if(idx>-1) nav.children[idx].classList.add('active');
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+  showSection('personal');
+
+  /* ---------- Second client toggle ---------- */
+  const toggle2=document.getElementById('toggleClient2');
+  toggle2.addEventListener('change',()=>{
+    document.querySelectorAll('.client2').forEach(el=>el.classList.toggle('hidden',!toggle2.checked));
+    recalcIncome();
+  });
+
+  /* ---------- Helper: parse number ---------- */
+  const num=x=>{const v=parseFloat(x);return isNaN(v)?0:v};
+
+  /* ---------- Income calculations ---------- */
+  function syncAnnualMonthly(prefix){
+    const annual=document.getElementById(prefix+'_net_annual');
+    const monthly=document.getElementById(prefix+'_net_monthly');
+    if(annual && monthly && annual.value!==''){ monthly.value=(num(annual.value)/12).toFixed(2); }
+    recalcIncome();
+  }
+  function syncMonthlyAnnual(prefix){
+    const annual=document.getElementById(prefix+'_net_annual');
+    const monthly=document.getElementById(prefix+'_net_monthly');
+    if(annual && monthly && monthly.value!==''){ annual.value=(num(monthly.value)*12).toFixed(2); }
+    recalcIncome();
+  }
+  function recalcIncome(){
+    const c1m=num(document.getElementById('c1_net_monthly').value);
+    const c2m=toggle2.checked?num(document.getElementById('c2_net_monthly').value):0;
+    const total=c1m+c2m;
+    document.getElementById('total_net_monthly').value=total.toFixed(2);
+    const out=calcOutgoings();
+    document.getElementById('total_outgoings').value=out.toFixed(2);
+    document.getElementById('disposable_monthly').value=(total-out).toFixed(2);
+  }
+
+  /* ---------- Dynamic tables: helpers ---------- */
+  function mkRow(parent, cols){
+    const row=document.createElement('div'); row.className='row';
+    cols.forEach(c=>{const col=document.createElement('div'); col.className='col-'+(c.span||2); col.appendChild(c.el); row.appendChild(col);});
+    parent.appendChild(row); return row;
+  }
+  function rm(btn){ btn.closest('.row').remove(); recalcIncome(); }
+
+  /* Dependents */
+  const deps=document.getElementById('dependents_table');
+  function addDependentRow(){
+    mkRow(deps,[
+      {span:4,el:inputEl('text','dep_name')},
+      {span:2,el:inputEl('text','dep_rel')},
+      {span:2,el:inputEl('number','dep_age')},
+      {span:2,el:selectEl(['Yes','No'])},
+      {span:2,el:removeBtn()}
+    ]);
+  }
+
+  /* Outgoings */
+  const outs=document.getElementById('outgoings_table');
+  function addOutgoingRow(){
+    const amt=inputEl('number','out_amount'); amt.step='0.01'; amt.oninput=recalcIncome;
+    mkRow(outs,[
+      {span:4,el:inputEl('text','out_cat')},
+      {span:4,el:inputEl('text','out_note')},
+      {span:2,el:amt},
+      {span:2,el:removeBtn()}
+    ]);
+    recalcIncome();
+  }
+  function calcOutgoings(){
+    let sum=0;
+    outs.querySelectorAll('input[name="out_amount"]').forEach(i=>sum+=num(i.value));
+    return sum;
+  }
+
+  /* Properties */
+  const props=document.getElementById('properties_table');
+  function addPropertyRow(){
+    const val=inputEl('number','prop_val'); val.step='0.01';
+    const mort=inputEl('number','prop_mort'); mort.step='0.01';
+    mkRow(props,[
+      {span:4,el:inputEl('text','prop_addr')},
+      {span:2,el:inputEl('text','prop_owner')},
+      {span:2,el:val},
+      {span:2,el:mort},
+      {span:2,el:removeBtn()}
+    ]);
+  }
+
+  /* Debts */
+  const debts=document.getElementById('debts_table');
+  function addDebtRow(){
+    const bal=inputEl('number','debt_bal'); bal.step='0.01';
+    const mon=inputEl('number','debt_mon'); mon.step='0.01'; mon.oninput=recalcIncome;
+    const rate=inputEl('number','debt_rate'); rate.step='0.01';
+    mkRow(debts,[
+      {span:4,el:inputEl('text','debt_lender')},
+      {span:2,el:bal},
+      {span:2,el:mon},
+      {span:2,el:rate},
+      {span:2,el:removeBtn()}
+    ]);
+    recalcIncome();
+  }
+
+  /* Policies */
+  const pols=document.getElementById('policies_table');
+  function addPolicyRow(){
+    mkRow(pols,[
+      {span:2,el:selectEl(['Life','Critical Illness','Income Protection','PMI'])},
+      {span:2,el:selectEl(['Client 1','Client 2','Joint'])},
+      {span:3,el:inputEl('text','pol_provider')},
+      {span:2,el:numEl('pol_sum')},
+      {span:2,el:numEl('pol_prem')},
+      {span:1,el:removeBtn()}
+    ]);
+  }
+
+  /* Pensions */
+  const pens=document.getElementById('pensions_table');
+  function addPensionRow(){
+    mkRow(pens,[
+      {span:3,el:inputEl('text','pen_provider')},
+      {span:2,el:selectEl(['Personal','Workplace','SIPP','Other'])},
+      {span:2,el:selectEl(['Client 1','Client 2'])},
+      {span:2,el:numEl('pen_value')},
+      {span:2,el:numEl('pen_contrib')},
+      {span:1,el:removeBtn()}
+    ]);
+  }
+
+  /* Investments */
+  const invs=document.getElementById('investments_table');
+  function addInvestmentRow(){
+    mkRow(invs,[
+      {span:3,el:selectEl(['ISA','GIA','Bond','Offshore Bond','Other'])},
+      {span:3,el:inputEl('text','inv_provider')},
+      {span:2,el:selectEl(['Client 1','Client 2','Joint'])},
+      {span:2,el:numEl('inv_value')},
+      {span:2,el:removeBtn()}
+    ]);
+  }
+
+  /* Generic controls */
+  function inputEl(type,name){ const i=document.createElement('input'); i.type=type; i.name=name; return i; }
+  function numEl(name){ const i=inputEl('number',name); i.step='0.01'; return i; }
+  function selectEl(opts){ const s=document.createElement('select'); opts.forEach(o=>{const op=document.createElement('option'); op.textContent=o; s.appendChild(op);}); return s; }
+  function removeBtn(){ const b=document.createElement('button'); b.type='button'; b.className='btn remove'; b.textContent='Remove'; b.onclick=()=>rm(b); return b; }
+
+  /* ---------- Yes/No UI ---------- */
+  function yn(btn,yes){
+    const wrap=btn.parentElement;
+    wrap.dataset.value=yes?'Yes':'No';
+    wrap.querySelectorAll('button').forEach(b=>b.classList.remove('active-yes','active-no'));
+    btn.classList.add(yes?'active-yes':'active-no');
+  }
+
+  /* ---------- Client name injection for vulnerability ---------- */
+  function firstName(full){ const t=(full||'').trim(); if(!t) return ''; return t.split(' ')[0]; }
+  function updateClientNames(){
+    const c1=firstName(document.getElementById('c1_full_name').value)||'Client 1';
+    const c2=firstName(document.getElementById('c2_full_name').value)||'Client 2';
+    document.querySelectorAll('.c1-name').forEach(el=>el.textContent=c1);
+    document.querySelectorAll('.c2-name').forEach(el=>el.textContent=c2);
+  }
+
+  /* ---------- Seed with one starter row per table ---------- */
+  addDependentRow();
+  addOutgoingRow();
+  addPropertyRow();
+  addDebtRow();
+  addPolicyRow();
+  addPensionRow();
+  addInvestmentRow();
+
+  /* Recalc once at start */
+  recalcIncome();
+</script>
 </body>
 </html>
